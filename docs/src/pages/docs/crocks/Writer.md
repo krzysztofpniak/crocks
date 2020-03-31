@@ -11,10 +11,10 @@ weight: 160
 Monoid m => Writer m a
 ```
 
-The `Writer` monad makes it possible to represent and compose computations that produce  some 
+The `Writer` monad makes it possible to represent and compose computations that produce some 
 additional data along with their computed values. `Writer` is a `Product` type that consists 
-of a `Monoid` as a the first value that typically holds meta-data such as log lines, while the 
-second value holds the result of the computation. 
+of a `Monoid` as a the first value that typically holds metadata such as log lines, while the 
+second value holds the result of a computation. 
 
 <article id="topic-implements">
 
@@ -115,8 +115,39 @@ equals(Writer(Array).of('result'), 'result')
 
 #### map
 
+Used to apply transformations to the value that a `Writer` holds, `map` takes a function that it will lift into the context of the `Writer` and apply to it the wrapped value. 
+
+```javascript
+import Sum from 'crocks/Sum'
+import Writer from 'crocks/Writer'
+
+// toLower :: String -> String
+const toLower = x => x.toLowerCase()
+
+Writer(Sum).of('HELLO!')
+  .map(toLower)
+//=> Writer( Sum 0 "hello!" )
+
+Writer(String)('file was loaded', 'important text from document')
+  .map(contents => contents.length)
+//=> Writer("file was loaded"  28)
+```
+
 #### ap
 
+Short for apply, `ap` is used to apply a `Writer` instance containing a value to another `Writer` instance that contains a function, resulting in new `Writer` instance comprising of the result of concatenating the monoid instances, and the value derived from applying the function. `ap` requires that it is called on a writer that wraps a curried polyadic function as its value.
+
+```javascript
+import Writer from './Writer'
+import Sum from './Sum'
+
+const SumWriter = Writer(Sum)
+
+SumWriter.of(x => y => `You attack the imp with your ${x} and ${y}`)
+  .ap(SumWriter(3, 'sword'))
+  .ap(SumWriter(7, 'fireball'))
+//=> Writer( Sum 10 "You attack the imp with your sword and fireball" )
+```
 #### chain
 
 #### read
